@@ -3,15 +3,17 @@ import UsuarioForm from '../components/Usuario/UsuarioForm';
 import UsuarioList from '../components/Usuario/UsuarioList';
 
 const Usuarios = () => {
-  const [usuarios, setUsuarios] = useState([]);
+  const [usuarios, setUsuarios] = useState([]); // Este estado simula tus datos de usuarios
 
-  // Función para agregar usuario nuevo
   const addUsuario = (usuario) => {
-    setUsuarios((prev) => [...prev, usuario]);
+    // Generar un ID único (temporal hasta que uses una DB real)
+    const newUsuario = { ...usuario, Usuario_ID: Date.now().toString() };
+    setUsuarios((prev) => [...prev, newUsuario]);
+    console.log('Usuario agregado:', newUsuario);
   };
 
   return (
-    <div style={{ padding: '1rem' }}>
+    <div className="page-container">
       <h1>Gestión de Usuarios</h1>
       <UsuarioForm onAddUsuario={addUsuario} />
       <UsuarioList usuarios={usuarios} />

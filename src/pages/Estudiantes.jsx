@@ -1,6 +1,14 @@
-import React from 'react';
+import EstudianteForm from '../components/Estudiante/EstudianteForm';
+import EstudianteList from '../components/Estudiante/EstudianteList';
 
 const Estudiantes = () => {
-  return (<div><h1>Página de Clases</h1>{/* Aquí va la implementación */}</div>);};
+  return (
+    <div className="container mt-4">
+      <h2>Estudiantes</h2>
+      <EstudianteForm />
+      <EstudianteList />
+    </div>
+  );
+};
 
 export default Estudiantes;

@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
+import styles from './UsuarioForm.module.css'; // Importa estilos específicos para el formulario
 
 const initialForm = {
   Nombre: '',
   Email: '',
   Password_Hash: '',
   Rol: '',
-  Fecha_Registro: '',
+  Fecha_Registro: '', // Se gestionará en formato compatible con input datetime-local
+};
+
+// Función auxiliar para formatear fecha ISO a formato YYYY-MM-DDTHH:mm para input datetime-local
+const formatDateTimeLocal = (isoString) => {
+  if (!isoString) return '';
+  const dt = new Date(isoString);
+  // Ajuste a formato local de fecha y hora compatible
+  const pad = (num) => num.toString().padStart(2, '0');
+  const yyyy = dt.getFullYear();
+  const mm = pad(dt.getMonth() + 1);
+  const dd = pad(dt.getDate());
+  const hh = pad(dt.getHours());
+  const min = pad(dt.getMinutes());
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
 };
 
 const UsuarioForm = ({ onAddUsuario }) => {
@@ -21,47 +36,74 @@ const UsuarioForm = ({ onAddUsuario }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validaciones básicas
     if (!form.Nombre || !form.Email || !form.Password_Hash || !form.Rol) {
       setError('Por favor, completa todos los campos obligatorios.');
       return;
     }
 
-    // Fecha de registro automática si no está asignada
-    const fechaRegistro = form.Fecha_Registro || new Date().toISOString();
+    // Si no se selecciona fecha, poner la fecha actual con formato ISO
+    const fechaRegistroISO = form.Fecha_Registro
+      ? new Date(form.Fecha_Registro).toISOString()
+      : new Date().toISOString();
 
-    // Enviar datos
-    onAddUsuario({ ...form, Fecha_Registro: fechaRegistro });
+    // Enviar datos al padre
+    onAddUsuario({ ...form, Fecha_Registro: fechaRegistroISO });
 
-    // Limpiar formulario
+    // Reset formulario y error
     setForm(initialForm);
     setError('');
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ border: '1px solid #ccc', padding: '1rem', marginBottom: '1rem' }}>
+    <form onSubmit={handleSubmit} className={styles.formCard}>
       <h3>Registro de Usuario</h3>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="error-message">{error}</p>}
 
-      <div>
-        <label>Nombre*:</label><br />
-        <input type="text" name="Nombre" value={form.Nombre} onChange={handleChange} />
+      <div className={styles.formGroup}>
+        <label htmlFor="nombre">Nombre*:</label>
+        <input
+          type="text"
+          id="nombre"
+          name="Nombre"
+          value={form.Nombre}
+          onChange={handleChange}
+          required
+        />
       </div>
 
-      <div>
-        <label>Email*:</label><br />
-        <input type="email" name="Email" value={form.Email} onChange={handleChange} />
+      <div className={styles.formGroup}>
+        <label htmlFor="email">Email*:</label>
+        <input
+          type="email"
+          id="email"
+          name="Email"
+          value={form.Email}
+          onChange={handleChange}
+          required
+        />
       </div>
 
-      <div>
-        <label>Contraseña*:</label><br />
-        <input type="password" name="Password_Hash" value={form.Password_Hash} onChange={handleChange} />
+      <div className={styles.formGroup}>
+        <label htmlFor="password">Contraseña*:</label>
+        <input
+          type="password"
+          id="password"
+          name="Password_Hash"
+          value={form.Password_Hash}
+          onChange={handleChange}
+          required
+        />
       </div>
 
-      <div>
-        <label>Rol*:</label><br />
-        <select name="Rol" value={form.Rol} onChange={handleChange}>
+      <div className={styles.formGroup}>
+        <label htmlFor="rol">Rol*:</label>
+        <select
+          id="rol"
+          name="Rol"
+          value={form.Rol}
+          onChange={handleChange}
+          required
+        >
           <option value="">-- Seleccionar Rol --</option>
           <option value="admin">Administrador</option>
           <option value="tutor">Tutor</option>
@@ -69,18 +111,18 @@ const UsuarioForm = ({ onAddUsuario }) => {
         </select>
       </div>
 
-      <div>
-        <label>Fecha de Registro:</label><br />
+      <div className={styles.formGroup}>
+        <label htmlFor="fechaRegistro">Fecha de Registro:</label>
         <input
           type="datetime-local"
+          id="fechaRegistro"
           name="Fecha_Registro"
-          value={form.Fecha_Registro}
+          value={formatDateTimeLocal(form.Fecha_Registro)}
           onChange={handleChange}
-          placeholder="Opcional"
         />
       </div>
 
-      <button type="submit" style={{ marginTop: '1rem' }}>Registrar Usuario</button>
+      <button type="submit">Registrar Usuario</button>
     </form>
   );
 };
