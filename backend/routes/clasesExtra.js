@@ -1,42 +1,34 @@
-// backend/routes/estudiantes.js
 import express from 'express';
 import { prisma } from '../prisma.js';
-import { ensureAuth } from '../middleware/auth.js';
+import { ensureAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
-
-// Todas las rutas requieren autenticación JWT
 router.use(ensureAuth);
 
-// GET /api/estudiantes/
 router.get('/', async (req, res) => {
   try {
-    const items = await prisma.estudiante.findMany({
+    const list = await prisma.clasesExtra.findMany({
       orderBy: { id: 'asc' }
     });
-    res.json(items);
+    res.json(list);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/estudiantes/
 router.post('/', async (req, res) => {
   try {
-    const newItem = await prisma.estudiante.create({
-      data: req.body
-    });
+    const newItem = await prisma.clasesExtra.create({ data: req.body });
     res.status(201).json(newItem);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// PUT /api/estudiantes/:id
 router.put('/:id', async (req, res) => {
   const id = Number(req.params.id);
   try {
-    const updated = await prisma.estudiante.update({
+    const updated = await prisma.clasesExtra.update({
       where: { id },
       data: req.body
     });
@@ -46,11 +38,10 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/estudiantes/:id
 router.delete('/:id', async (req, res) => {
   const id = Number(req.params.id);
   try {
-    await prisma.estudiante.delete({ where: { id } });
+    await prisma.clasesExtra.delete({ where: { id } });
     res.status(204).end();
   } catch (err) {
     res.status(500).json({ error: err.message });

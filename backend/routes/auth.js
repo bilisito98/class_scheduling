@@ -1,20 +1,58 @@
-/* eslint-env node */
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { prisma } from '../prisma.js';
+import { ensureAuth } from '../middleware/auth.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
+
 const router = express.Router();
 
-const FAKE_USER = { username: 'admin', password: 'admin123' };
-
-router.post('/login', (req, res) => {
+// POST /api/auth/register
+router.post('/register', async (req, res) => {
   const { username, password } = req.body;
-  if (username === FAKE_USER.username && password === FAKE_USER.password) {
-    const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '2h' });
-    return res.json({ token });
+  if (!username || !password) {return res.status(400).json({ error: 'username y password son obligatorios' });}
+  try {
+    const existing = await prisma.user.findUnique({ where: { username } });
+    if (existing) return res.status(409).json({ error: 'Usuario ya existe' });
+
+    const hash = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: { username, password: hash }
+    });
+    res.status(201).json({ id: user.id, username: user.username });
+  } catch (err) {res.status(500).json({ error: err.message });}
+});
+
+// POST /api/auth/login
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {return res.status(400).json({ error: 'username y password son obligatorios' });}
+  try {
+    const user = await prisma.user.findUnique({ where: { username } });
+    if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ error: 'Credenciales inválidas' });
+
+    const payload = { userId: user.id, username: user.username };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '2h' });
+    res.json({ token });
+  } catch (err) {res.status(500).json({ error: err.message });}
+});
+
+// GET /api/auth/users
+router.get('/users', ensureAuth, async (req, res) => {
+  try {
+    const list = await prisma.user.findMany({
+      select: { id: true, username: true },
+      orderBy: { id: 'asc' }
+    });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.status(401).json({ error: 'Credenciales inválidas' });
 });
 
 export default router;
